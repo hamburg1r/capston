@@ -2,7 +2,9 @@ package com.document.model;
 
 import java.time.LocalDateTime;
 
+@DynamoDbBean
 public class DocumentItem {
+    
     private String documentId;
     private String userId;
     private String s3Key;
@@ -11,7 +13,7 @@ public class DocumentItem {
     private String status;
     private LocalDateTime uploadDate;
     // private Map<String, Object> processingDetails;
-
+    @DynamoDbPartitionKey
     public String getDocumentId() {
         return documentId;
     }
@@ -19,7 +21,7 @@ public class DocumentItem {
     public void setDocumentId(String documentId) {
         this.documentId = documentId;
     }
-
+    @DynamoDbSortKey
     public String getUserId() {
         return userId;
     }
