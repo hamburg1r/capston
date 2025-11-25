@@ -1,4 +1,7 @@
 import { useAuth } from "react-oidc-context";
+import { BrowserRouter } from "react-router-dom";
+import AppRoutes from "./routes/AppRoutes";
+// TODO: Move logic to their dedicated location
 function App() {
   const auth = useAuth();
 
@@ -10,6 +13,7 @@ function App() {
   };
 
   if (auth.isLoading) {
+    // TODO: add spinner
     return <div>Loading...</div>;
   }
 
@@ -31,10 +35,13 @@ function App() {
   }
 
   return (
-    <div>
-      <button onClick={() => auth.signinRedirect()}>Sign in</button>
-      <button onClick={() => signOutRedirect()}>Sign out</button>
-    </div>
+    <BrowserRouter>
+      <AppRoutes />
+    </BrowserRouter>
+    // <div>
+    //   <button onClick={() => auth.signinRedirect()}>Sign in</button>
+    //   <button onClick={() => signOutRedirect()}>Sign out</button>
+    // </div>
   );
 }
 
