@@ -22,15 +22,15 @@ public class SecurityConfig {
 
         http.csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // allowed endpoints
-                        .requestMatchers("/health", "/public/**").permitAll()
+                      
+                        .requestMatchers("/home/**").permitAll()
 
-                        // protected endpoints
-                        .requestMatchers("/api/**", "/test/**").authenticated()
+                       
+                        .requestMatchers("/api/**", "/test/**","/documents/**").authenticated()
 
                         .anyRequest().permitAll()
                 )
-                // add JWT filter BEFORE username/password filter
+               
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
