@@ -6,7 +6,6 @@ import axiosClient from "../api/axiosClient";
 import { requestPresigned, addFileOptimistic, updateFileStatus } from "../store/slices/filesSlice";
 import { AppConfigContext } from "../context/AppConfigContext";
 import { useNavigate } from "react-router-dom";
-
 /**
  * Flow:
  * 1. User picks file
@@ -17,7 +16,6 @@ import { useNavigate } from "react-router-dom";
  * 6. POST /api/documents/{documentId}/complete (with Authorization) to mark upload complete
  * 7. Navigate to success or failure pages
  */
-
 export default function FileUploadForm() {
   const fileRef = useRef();
   const auth = useAuth();
@@ -26,7 +24,6 @@ export default function FileUploadForm() {
   const [progress, setProgress] = useState(0);
   const appConfig = useContext(AppConfigContext);
   const navigate = useNavigate();
-
   const handleFile = async (file) => {
     if (!file) return;
     try {
@@ -42,17 +39,14 @@ export default function FileUploadForm() {
           fileToUpload = file;
         }
       }
-
       // 1. Request presigned URL from backend
-      const token = auth.user?.access_token;
+      const token = auth.user?.id_token;
       const presignRes = await axiosClient.post(
         "/api/documents/presigned-url",
         { fileName: file.name, fileType: file.type, fileSize : file.size },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       const { uploadUrl, documentId, s3Key } = presignRes.data;
-
       // Optimistic local add
       dispatch(
         addFileOptimistic({
@@ -64,7 +58,6 @@ export default function FileUploadForm() {
           uploadDate: new Date().toISOString(),
         })
       );
-
       // 2. PUT to S3 (use native fetch to stream and track)
       const putResp = await fetch(uploadUrl, {
         method: "PUT",
@@ -73,21 +66,22 @@ export default function FileUploadForm() {
           "Content-Type": fileToUpload.type,
         },
       });
-
       if (!putResp.ok) {
         // PUT failed
         dispatch(updateFileStatus({ documentId, status: "FAILED" }));
         navigate("/upload-failure", { state: { documentId, reason: "S3 upload failed" } });
         return;
       }
-
       // 3. Notify backend upload complete
       const completeResp = await axiosClient.post(
         `/api/documents/${documentId}/complete`,
-        {},
+        {
+           fileName: file.name,
+          fileType: file.type,
+          fileSize: file.size,
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-
       if (completeResp.status === 200 || completeResp.status === 204) {
         dispatch(updateFileStatus({ documentId, status: "COMPLETED" }));
         navigate("/upload-success", { state: { documentId } });
@@ -104,12 +98,10 @@ export default function FileUploadForm() {
       if (fileRef.current) fileRef.current.value = "";
     }
   };
-
   const onChange = async (e) => {
     const f = e.target.files[0];
     await handleFile(f);
   };
-
   return (
     <div className="p-6 bg-white rounded shadow max-w-2xl mx-auto">
       <h3 className="text-xl font-semibold mb-4">Upload File</h3>
