@@ -1,41 +1,63 @@
 import { useAuth } from "react-oidc-context";
-function App() {
+import { Navigate, Routes, Route } from "react-router-dom";
+import HomePage from "./pages/HomePage";
+import WelcomePage from "./pages/WelcomePage";
+import FileUploadPage from "./pages/FileUploadPage";
+import FileListPage from "./pages/FileListPage";
+import UploadSuccessPage from "./pages/UploadSuccessPage";
+import UploadFailurePage from "./pages/UploadFailurePage";
+import ProtectedRoute from "./components/ProtectedRoute";
+import LoginPage from "./Pages/LoginPage";
+import SignupPage from "./Pages/SignupPage";
+
+export default function App() {
   const auth = useAuth();
 
-  const signOutRedirect = () => {
-    const clientId = "1v2f3obbse4atof6qb0krmrqnu";
-    const logoutUri = "http://localhost:5173/";
-    const cognitoDomain = "https://us-east-1eoyo85ex9.auth.us-east-1.amazoncognito.com";
-    window.location.href = `${cognitoDomain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(logoutUri)}`;
-  };
-
-  if (auth.isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  if (auth.error) {
-    return <div>Encountering error... {auth.error.message}</div>;
-  }
-
-  if (auth.isAuthenticated) {
-    return (
-      <div>
-        <pre> Hello: {auth.user?.profile.email} </pre>
-        <pre> ID Token: {auth.user?.id_token} </pre>
-        <pre> Access Token: {auth.user?.access_token} </pre>
-        <pre> Refresh Token: {auth.user?.refresh_token} </pre>
-
-        <button onClick={() => auth.removeUser()}>Sign out</button>
-      </div>
-    );
-  }
-
   return (
-    <div>
-      <button onClick={() => auth.signinRedirect()}>Sign in</button>
-      <button onClick={() => signOutRedirect()}>Sign out</button>
-    </div>
+    <Routes>
+      {/* If logged in → go to welcome */}
+      <Route
+        path="/"
+        element={
+          auth.isAuthenticated ? <Navigate to="/welcome" /> : <HomePage />
+        }
+      />
+
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+
+      <Route
+        path="/welcome"
+        element={
+          <ProtectedRoute>
+            <WelcomePage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/upload"
+        element={
+          <ProtectedRoute>
+            <FileUploadPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/files"
+        element={
+          <ProtectedRoute>
+            <FileListPage />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route path="/upload-success" element={<UploadSuccessPage />} />
+      <Route path="/upload-failure" element={<UploadFailurePage />} />
+
+      {/* Catch-all */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
   );
 }
-
-export default App;
