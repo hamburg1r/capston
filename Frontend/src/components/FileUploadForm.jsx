@@ -17,37 +17,54 @@ import { useNavigate } from "react-router-dom";
  * 7. Navigate to success or failure pages
  */
 export default function FileUploadForm() {
-  const fileRef = useRef();
+  const fileRef = useRef(null);
   const auth = useAuth();
   const dispatch = useDispatch();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [isDragOver, setIsDragOver] = useState(false);
   const appConfig = useContext(AppConfigContext);
   const navigate = useNavigate();
   const handleFile = async (file) => {
     if (!file) return;
     try {
       setUploading(true);
-      // optional image compression for images
+
+      // optional compression for images
       let fileToUpload = file;
       if (file.type.startsWith("image/")) {
-        const opts = { maxSizeMB: 1, maxWidthOrHeight: 1920, useWebWorker: true };
         try {
-          fileToUpload = await imageCompression(file, opts);
-        } catch (e) {
-          // compression failed; continue with original
+          fileToUpload = await imageCompression(file, {
+            maxSizeMB: 1,
+            maxWidthOrHeight: 1920,
+            useWebWorker: true,
+          });
+        } catch {
           fileToUpload = file;
         }
       }
+<<<<<<< HEAD
       // 1. Request presigned URL from backend
       const token = auth.user?.id_token;
+=======
+
+      // 1. Request presigned URL
+      const token = auth.user?.access_token;
+>>>>>>> fdb67b7 (Updated FileUploadForm ui)
       const presignRes = await axiosClient.post(
         "/api/documents/presigned-url",
-        { fileName: file.name, fileType: file.type, fileSize : file.size },
+        { fileName: file.name, fileType: file.type, fileSize: file.size },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+<<<<<<< HEAD
       const { uploadUrl, documentId, s3Key } = presignRes.data;
       // Optimistic local add
+=======
+
+      const { uploadUrl, documentId } = presignRes.data;
+
+      // optimistic add
+>>>>>>> fdb67b7 (Updated FileUploadForm ui)
       dispatch(
         addFileOptimistic({
           documentId,
@@ -58,21 +75,24 @@ export default function FileUploadForm() {
           uploadDate: new Date().toISOString(),
         })
       );
+<<<<<<< HEAD
       // 2. PUT to S3 (use native fetch to stream and track)
+=======
+
+      // 2. PUT to S3
+>>>>>>> fdb67b7 (Updated FileUploadForm ui)
       const putResp = await fetch(uploadUrl, {
         method: "PUT",
         body: fileToUpload,
-        headers: {
-          "Content-Type": fileToUpload.type,
-        },
+        headers: { "Content-Type": fileToUpload.type },
       });
       if (!putResp.ok) {
-        // PUT failed
         dispatch(updateFileStatus({ documentId, status: "FAILED" }));
         navigate("/upload-failure", { state: { documentId, reason: "S3 upload failed" } });
         return;
       }
-      // 3. Notify backend upload complete
+
+      // 3. Mark complete
       const completeResp = await axiosClient.post(
         `/api/documents/${documentId}/complete`,
         {
@@ -99,20 +119,60 @@ export default function FileUploadForm() {
     }
   };
   const onChange = async (e) => {
-    const f = e.target.files[0];
-    await handleFile(f);
+    const file = e.target.files[0];
+    await handleFile(file);
+  };
+
+  const handleDrop = async (e) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const file = e.dataTransfer.files[0];
+    if (file) await handleFile(file);
   };
   return (
     <div className="p-6 bg-white rounded shadow max-w-2xl mx-auto">
       <h3 className="text-xl font-semibold mb-4">Upload File</h3>
-      <input type="file" ref={fileRef} onChange={onChange} className="mb-4" />
+
+      {/* Hidden input */}
+      <input
+        ref={fileRef}
+        type="file"
+        id="file-upload-input"
+        onChange={onChange}
+        className="hidden"
+      />
+
+      {/* Dropzone */}
+      <div
+        onClick={() => fileRef.current?.click()}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
+        className={`
+          flex flex-col items-center justify-center
+          w-full h-40 cursor-pointer transition
+          border-2 border-dashed rounded-xl
+          ${isDragOver ? "border-blue-500 bg-blue-50" : "border-gray-400 bg-gray-50"}
+        `}
+      >
+        <span className="font-semibold text-gray-700">Drop file here</span>
+        <span className="text-sm text-gray-500">or click to upload</span>
+      </div>
+
       {uploading && (
-        <div>
+        <div className="mt-4">
           <p>Uploading... {progress}%</p>
           <progress value={progress} max="100" className="w-full"></progress>
         </div>
       )}
-      <p className="mt-3 text-sm text-gray-500">Files are uploaded directly to S3 via presigned URL.</p>
+
+      <p className="mt-3 text-sm text-gray-500">
+        Files are uploaded directly to S3 via presigned URL.
+      </p>
     </div>
   );
 }
