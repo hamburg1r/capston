@@ -79,8 +79,8 @@ public class DocumentController {
                 documentId, userId, fileName, fileType, s3Key
         );
 
-        // Send thumbnail generation task to SQS
-        sqsService.sendThumbnailGenerationTask(documentId, s3Key);
+        // Send metadata extraction task to SQS
+        sqsService.sendMetadataExtractionTask(documentId, userId, s3Key, fileType);
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Document upload completed");

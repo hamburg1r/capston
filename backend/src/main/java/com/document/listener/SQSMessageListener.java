@@ -73,8 +73,8 @@ public class SQSMessageListener {
                 case "PROCESS_DOCUMENT":
                     processDocument(taskData);
                     break;
-                case "GENERATE_THUMBNAIL":
-                    generateThumbnail(taskData);
+                 case "EXTRACT_METADATA":
+                    extractMetadata(taskData);
                     break;
                 default:
                     System.out.println("Unknown task type: " + taskType);
@@ -118,20 +118,38 @@ public class SQSMessageListener {
     }
 
     
-    //  Generate thumbnail for document
     
-    private void generateThumbnail(Map<String, Object> taskData) {
+    //  Extract metadata from document
+     
+    private void extractMetadata(Map<String, Object> taskData) {
         String documentId = (String) taskData.get("documentId");
+        String userId = (String) taskData.get("userId");
         String s3Key = (String) taskData.get("s3Key");
+        String fileType = (String) taskData.get("fileType");
 
-        System.out.println("Generating thumbnail for document: " + documentId);
+        System.out.println("Extracting metadata from document: " + documentId);
 
-        // Simulate thumbnail generation
         try {
-            Thread.sleep(1500);
-            System.out.println("Thumbnail generated for: " + s3Key);
+            Thread.sleep(2000);
+
+            var doc = documentService.getById(documentId, userId);
+            if (doc != null) {
+                // Simulate extracted metadata
+                System.out.println("Extracted metadata:");
+                System.out.println("  - Author: John Doe");
+                System.out.println("  - Created Date: 2024-01-15");
+                System.out.println("  - Page Count: 12");
+                System.out.println("  - File Type: " + fileType);
+
+                //  need to implement this in dynamo db  to get real metadata
+                doc.setStatus("METADATA_EXTRACTED");
+                documentService.updateDocument(doc);
+
+                System.out.println("Metadata extraction completed for: " + s3Key);
+            }
+
         } catch (Exception e) {
-            System.err.println("Thumbnail generation failed: " + e.getMessage());
+            System.err.println("Metadata extraction failed: " + e.getMessage());
         }
     }
 

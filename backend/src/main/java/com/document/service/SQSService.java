@@ -26,9 +26,9 @@ public class SQSService {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Send document processing task to SQS queue
-     */
+    
+    //  Send document processing task to SQS queue
+    
     public String sendDocumentProcessingTask(
             String documentId,
             String userId,
@@ -64,33 +64,38 @@ public class SQSService {
         }
     }
 
-    /**
-     * Send document for thumbnail generation
-     */
-    public String sendThumbnailGenerationTask(
+    
+    //  Send document metadata extraction task
+    
+    public String sendMetadataExtractionTask(
             String documentId,
-            String s3Key
+            String userId,
+            String s3Key,
+            String fileType
     ) {
         try {
             Map<String, Object> taskMessage = new HashMap<>();
-            taskMessage.put("taskType", "GENERATE_THUMBNAIL");
+            taskMessage.put("taskType", "EXTRACT_METADATA");
             taskMessage.put("documentId", documentId);
+            taskMessage.put("userId", userId);
             taskMessage.put("s3Key", s3Key);
+            taskMessage.put("fileType", fileType);
             taskMessage.put("timestamp", System.currentTimeMillis());
 
             String messageJson = objectMapper.writeValueAsString(taskMessage);
 
             SendMessageRequest sendMessageRequest = new SendMessageRequest()
                     .withQueueUrl(queueUrl)
-                    .withMessageBody(messageJson);
+                    .withMessageBody(messageJson)
+                    .withDelaySeconds(5); // Wait 5 seconds before processing
 
             SendMessageResult result = sqsClient.sendMessage(sendMessageRequest);
 
-            System.out.println("Thumbnail generation task sent. MessageId: " + result.getMessageId());
+            System.out.println("Metadata extraction task sent. MessageId: " + result.getMessageId());
             return result.getMessageId();
 
         } catch (Exception e) {
-            System.err.println("Failed to send thumbnail task: " + e.getMessage());
+            System.err.println("Failed to send metadata extraction task: " + e.getMessage());
             throw new RuntimeException("SQS send failed", e);
         }
     }
