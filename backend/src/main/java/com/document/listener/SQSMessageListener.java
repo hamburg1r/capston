@@ -36,9 +36,9 @@ public class SQSMessageListener {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Poll SQS queue every 10 seconds for new messages
-     */
+    
+    //  Poll SQS queue every 10 seconds for new messages
+    
     @Scheduled(fixedDelay = 10000)
     public void pollMessages() {
         try {
@@ -59,9 +59,9 @@ public class SQSMessageListener {
         }
     }
 
-    /**
-     * Process individual SQS message
-     */
+    
+    //  Process individual SQS message
+    
     private void processMessage(Message message) {
         try {
             String body = message.getBody();
@@ -85,16 +85,15 @@ public class SQSMessageListener {
         }
     }
 
-    /**
-     * Process document (simulate processing)
-     */
+    
+    //  Process document (simulate processing)
+    
     private void processDocument(Map<String, Object> taskData) {
         String documentId = (String) taskData.get("documentId");
         String userId = (String) taskData.get("userId");
 
         System.out.println("Processing document: " + documentId);
 
-        // Simulate document processing (e.g., virus scan, format conversion, etc.)
         try {
             Thread.sleep(2000); // Simulate processing time
 
@@ -118,9 +117,9 @@ public class SQSMessageListener {
         }
     }
 
-    /**
-     * Generate thumbnail for document
-     */
+    
+    //  Generate thumbnail for document
+    
     private void generateThumbnail(Map<String, Object> taskData) {
         String documentId = (String) taskData.get("documentId");
         String s3Key = (String) taskData.get("s3Key");
@@ -136,9 +135,9 @@ public class SQSMessageListener {
         }
     }
 
-    /**
-     * Delete processed message from queue
-     */
+    
+    //  Delete processed message from queue
+    
     private void deleteMessage(Message message) {
         try {
             DeleteMessageRequest deleteRequest = new DeleteMessageRequest()
