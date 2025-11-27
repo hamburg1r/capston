@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/documents")
+@RequestMapping("/api/documents")
 public class DocumentController {
 
     private final DocumentServiceImp documentService;

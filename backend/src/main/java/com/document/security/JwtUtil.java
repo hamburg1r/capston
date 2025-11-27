@@ -39,19 +39,21 @@ public class JwtUtil {
 
         Algorithm algorithm = Algorithm.RSA256((RSAPublicKey) jwk.getPublicKey(), null);
 
-        // Signature verify
+     
+       
         algorithm.verify(jwt);
-
-        // Issuer verify
+       
+        
         if (!jwt.getIssuer().equals(cognitoConfig.getIssuer())) {
             throw new RuntimeException("Invalid Issuer");
         }
-
-        // Audience verify
+       
+        
         if (!jwt.getAudience().contains(clientId)) {
             throw new RuntimeException("Invalid ClientId / Audience");
         }
-
+        
+       
         return jwt;
     }
 }
