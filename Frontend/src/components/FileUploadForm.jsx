@@ -43,28 +43,15 @@ export default function FileUploadForm() {
           fileToUpload = file;
         }
       }
-<<<<<<< HEAD
-      // 1. Request presigned URL from backend
-      const token = auth.user?.id_token;
-=======
-
       // 1. Request presigned URL
-      const token = auth.user?.access_token;
->>>>>>> fdb67b7 (Updated FileUploadForm ui)
+      const token = auth.user?.id_token;
       const presignRes = await axiosClient.post(
         "/api/documents/presigned-url",
         { fileName: file.name, fileType: file.type, fileSize: file.size },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-<<<<<<< HEAD
       const { uploadUrl, documentId, s3Key } = presignRes.data;
-      // Optimistic local add
-=======
-
-      const { uploadUrl, documentId } = presignRes.data;
-
-      // optimistic add
->>>>>>> fdb67b7 (Updated FileUploadForm ui)
+      // Optimistic add
       dispatch(
         addFileOptimistic({
           documentId,
@@ -75,12 +62,8 @@ export default function FileUploadForm() {
           uploadDate: new Date().toISOString(),
         })
       );
-<<<<<<< HEAD
-      // 2. PUT to S3 (use native fetch to stream and track)
-=======
 
       // 2. PUT to S3
->>>>>>> fdb67b7 (Updated FileUploadForm ui)
       const putResp = await fetch(uploadUrl, {
         method: "PUT",
         body: fileToUpload,
