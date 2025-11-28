@@ -3,10 +3,10 @@ package com.document.dto;
 public class DocumentUploadRequestDto {
 	  private String fileName;
 	    private String fileType;
-	    private long fileSize;
+	    private String fileSize;
 	    public DocumentUploadRequestDto() {}
 	    
-	    public DocumentUploadRequestDto(String fileName, String fileType, long fileSize) {
+	    public DocumentUploadRequestDto(String fileName, String fileType, String fileSize) {
 			super();
 			this.fileName = fileName;
 			this.fileType = fileType;
@@ -25,10 +25,10 @@ public class DocumentUploadRequestDto {
 	    public void setFileType(String fileType) {
 	        this.fileType = fileType;
 	    }
-	    public long getFileSize() {
+	    public String getFileSize() {
 	        return fileSize;
 	    }
-	    public void setFileSize(long fileSize) {
+	    public void setFileSize(String fileSize) {
 	        this.fileSize = fileSize;
 	    }
 
