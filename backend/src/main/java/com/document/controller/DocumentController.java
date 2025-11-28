@@ -3,14 +3,10 @@ package com.document.controller;
 import com.document.dto.DocumentResponseDTO;
 import com.document.dto.DocumentUploadRequestDto;
 import com.document.model.DocumentModel;
-
 import com.document.service.DocumentServiceImp;
 import com.document.service.S3Service;
 import com.document.service.SNSService;
 import com.document.service.SQSService;
-
-import jakarta.servlet.http.HttpServletRequest;
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -40,80 +36,78 @@ public class DocumentController {
     }
 
     @PostMapping("/presigned-url")
-    public DocumentResponseDTO generatePresignedUrl(@RequestBody Map<String, String> req) {
+    public ResponseEntity<DocumentResponseDTO> generatePresignedUrl(@RequestBody DocumentUploadRequestDto req) {
 
-        String fileName = req.get("fileName");
-        String fileType = req.get("fileType");
-        String fileSize = req.get("fileSize");
+        String fileName = req.getFileName();
+        String fileType = req.getFileType();
+        String fileSize = req.getFileSize();
 
         String userId = getUserId();
 
         DocumentModel document = documentService.createDocument(userId, fileName, fileType, fileSize);
-
         String s3Key = userId + "/" + document.getDocumentId() + "/" + fileName;
 
         String uploadUrl = s3Service.generatePresignedUrl(s3Key, fileType);
-         DocumentResponseDTO documentResponseDTO= new DocumentResponseDTO();
-       
-         documentResponseDTO.setUploadUrl(uploadUrl);
-         documentResponseDTO.setDocumentId(document.getDocumentId());
 
-        return documentResponseDTO;
+        DocumentResponseDTO documentResponseDTO = new DocumentResponseDTO();
+        documentResponseDTO.setUploadUrl(uploadUrl);
+        documentResponseDTO.setDocumentId(document.getDocumentId());
+
+        return ResponseEntity.ok(documentResponseDTO);
     }
 
     @PostMapping("/{documentId}/complete")
-    public Map<String, String> markUploadComplete(@PathVariable String documentId, @RequestBody Map<String, Object> req) {
+    public ResponseEntity<Map<String, String>> markUploadComplete(
+            @PathVariable String documentId, @RequestBody DocumentModel req) {
 
         String userId = getUserId();
 
-        String fileSize = req.getFileSize();
-        String fileType = req.getFileType();
-        String fileName = req.getFileName();
+        documentService.markUploadCompleted(
+                documentId, userId, req.getFileName(), req.getFileType(), req.getFileSize()
+        );
 
-        documentService.markUploadCompleted(documentId, userId, fileName, fileType, fileSize);
-
-        // Publish SNS notification for document upload
         String snsMessageId = snsService.publishDocumentUploadNotification(
-                documentId, userId, fileName, fileType, fileSize
+                documentId, userId, req.getFileName(), req.getFileType(), req.getFileSize()
         );
 
-        // Send processing task to SQS
-        String s3Key = userId + "/" + documentId + "/" + fileName;
+        String s3Key = userId + "/" + documentId + "/" + req.getFileName();
         String sqsMessageId = sqsService.sendDocumentProcessingTask(
-                documentId, userId, fileName, fileType, s3Key
+                documentId, userId, req.getFileName(), req.getFileType(), s3Key
         );
 
-        // Send metadata extraction task to SQS
-        sqsService.sendMetadataExtractionTask(documentId, userId, s3Key, fileType);
+        sqsService.sendMetadataExtractionTask(documentId, userId, s3Key, req.getFileType());
 
         Map<String, String> response = new HashMap<>();
         response.put("message", "Document upload completed");
         response.put("snsMessageId", snsMessageId);
         response.put("sqsMessageId", sqsMessageId);
 
-        return response;
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping
-    public List<DocumentModel> getUserDocuments() {
+    public ResponseEntity<List<DocumentModel>> getUserDocuments() {
         String userId = getUserId();
-        System.out.println(userId);
-        return documentService.getUserDocuments(userId);
+        List<DocumentModel> list = documentService.getUserDocuments(userId);
+        return ResponseEntity.ok(list);
     }
+
     @GetMapping("/download/{documentId}")
-    public String download(@PathVariable String documentId) {
+    public ResponseEntity<String> download(@PathVariable String documentId) {
         String userId = getUserId();
-        return documentService.generateDownloadUrl(documentId, userId);
+        String url = documentService.generateDownloadUrl(documentId, userId);
+        return ResponseEntity.ok(url);
+    }
+
+    @DeleteMapping("/{documentId}")
+    public ResponseEntity<Void> deleteDocument(@PathVariable String documentId) {
+        String userId = getUserId();
+        documentService.deleteDocument(documentId, userId);
+        return ResponseEntity.noContent().build();
     }
 
     private String getUserId() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         return principal.toString();
-    }
-    @DeleteMapping("/{documentId}")
-    public ResponseEntity<Void> deleteDocument(@PathVariable String documentId) {
-        String userId = getUserId(); // jo tum already use kar rahe ho JWT se
-        documentService.deleteDocument(documentId, userId);
-        return ResponseEntity.noContent().build(); // 204
     }
 }
