@@ -2,13 +2,14 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import ProtectedRoute from "../components/ProtectedRoute";
 import FileUploadForm from "../components/FileUploadForm";
+import "../styles/FileUploadPage.css";
 
 export default function FileUploadPage() {
   return (
     <ProtectedRoute>
-      <div className="min-h-screen bg-gray-50">
+      <div className="upload-page">
         <Navbar />
-        <div className="max-w-3xl mx-auto py-12">
+        <div className="upload-container">
           <FileUploadForm />
         </div>
       </div>

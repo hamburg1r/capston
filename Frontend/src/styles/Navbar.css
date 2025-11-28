@@ -1,0 +1,100 @@
+/* NAVBAR WRAPPER */
+.navbar {
+  background: #1e293b;
+  color: white;
+  padding: 14px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* LEFT SECTION */
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+}
+
+.nav-logo {
+  font-size: 1.35rem;
+  font-weight: 700;
+  text-decoration: none;
+  color: white;
+  letter-spacing: 0.5px;
+}
+
+.nav-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-link {
+  color: #e2e8f0;
+  text-decoration: none;
+  font-size: 0.97rem;
+  transition: 0.25s;
+}
+
+.nav-link:hover {
+  color: white;
+}
+
+/* RIGHT SECTION */
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.nav-user {
+  font-size: 0.95rem;
+  color: #cbd5e1;
+}
+
+/* BUTTONS */
+.nav-logout,
+.nav-login-btn {
+  background: #ef4444;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: 0.25s ease;
+}
+
+.nav-login-btn {
+  background: #0ea5e9;
+}
+
+.nav-login-btn:hover {
+  background: #0284c7;
+}
+
+.nav-logout:hover {
+  background: #dc2626;
+}
+
+/* RESPONSIVE */
+@media (max-width: 640px) {
+  .navbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .nav-left {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .nav-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+}

@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { setAuth } from "../store/slices/authSlice";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import "../styles/LoginPage.css";
 
 export default function LoginPage() {
   const auth = useAuth();
@@ -15,6 +16,7 @@ export default function LoginPage() {
     //  dont use auth.isAuthenticated  , in if  either error  , also remove from dependency array ...
     if (auth.user) {
       console.log("🔵 OIDC user object:", auth.user);
+
       dispatch(
         setAuth({
           accessToken: auth.user?.access_token || auth.user?.accessToken,
@@ -22,24 +24,30 @@ export default function LoginPage() {
           profile: auth.user?.profile,
         })
       );
-     
 
       navigate("/welcome", { replace: true });
-    } else if (auth.error) {      navigate("/signup");
+    } else if (auth.error) {
+      navigate("/signup");
     }
-  }, [ auth.user, auth.error, dispatch, navigate]);
+  }, [auth.user, auth.error, dispatch, navigate]);
 
   return (
-    <div>
-      <div className="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
-        <h2 className="text-2xl mb-4">Login</h2>
+    <div className="login-page">
+      <Navbar />
+
+      <div className="login-card">
+        <h2 className="login-title">Welcome Back</h2>
+
         <button
           onClick={() => auth.signinRedirect()}
-          className="w-full py-2 bg-blue-600 text-white rounded"
+          className="login-btn"
         >
           Sign in with Cognito
         </button>
-        <p className="mt-4 text-sm text-gray-500">After success you'll be forwarded to the app.</p>
+
+        <p className="login-note">
+          After successful login, you’ll be redirected to your dashboard.
+        </p>
       </div>
     </div>
   );

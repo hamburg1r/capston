@@ -2,32 +2,43 @@ import React from "react";
 import Navbar from "../components/Navbar";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import "../styles/WelcomePage.css";
 
 export default function WelcomePage() {
   const profile = useSelector((s) => s.auth.profile);
-   const authState = useSelector((state) => state.auth);
-   console.log("🔍 Redux Auth State:", authState);
-
+  const authState = useSelector((state) => state.auth);
+  console.log("🔍 Redux Auth State:", authState);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="welcome-page">
       <Navbar />
-      <div className="max-w-4xl mx-auto py-12">
-        <h2 className="text-3xl font-semibold">Welcome, {profile?.email || profile?.name}</h2>
-        <p className="mt-2 text-gray-600">Choose an action below.</p>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Link to="/upload" className="p-6 bg-white rounded shadow hover:shadow-lg">
-            <h3 className="font-medium">Upload File</h3>
-            <p className="text-sm text-gray-500 mt-2">Upload files to S3 using presigned URLs.</p>
+      <div className="welcome-container">
+        <h2 className="welcome-title">
+          Welcome, {profile?.email || profile?.name}
+        </h2>
+        <p className="welcome-subtitle">Choose an action below.</p>
+
+        <div className="action-grid">
+          <Link to="/upload" className="action-card">
+            <h3 className="action-card-title">Upload File</h3>
+            <p className="action-card-desc">
+              Upload files to S3 using presigned URLs.
+            </p>
           </Link>
-          <Link to="/files" className="p-6 bg-white rounded shadow hover:shadow-lg">
-            <h3 className="font-medium">View Files</h3>
-            <p className="text-sm text-gray-500 mt-2">See status and metadata stored in DynamoDB.</p>
+
+          <Link to="/files" className="action-card">
+            <h3 className="action-card-title">View Files</h3>
+            <p className="action-card-desc">
+              See file status and metadata stored in DynamoDB.
+            </p>
           </Link>
-          <div className="p-6 bg-white rounded shadow">
-            <h3 className="font-medium">Account</h3>
-            <p className="text-sm text-gray-500 mt-2">Manage account or sign out via navbar.</p>
+
+          <div className="action-card disabled">
+            <h3 className="action-card-title">Account</h3>
+            <p className="action-card-desc">
+              Manage your account or sign out via the navbar.
+            </p>
           </div>
         </div>
       </div>
