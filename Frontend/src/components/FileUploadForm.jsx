@@ -3,34 +3,31 @@ import { useAuth } from "react-oidc-context";
 import { useDispatch } from "react-redux";
 import imageCompression from "browser-image-compression";
 import axiosClient from "../api/axiosClient";
-import { requestPresigned, addFileOptimistic, updateFileStatus } from "../store/slices/filesSlice";
+import {
+  addFileOptimistic,
+  updateFileStatus,
+} from "../store/slices/filesSlice";
 import { AppConfigContext } from "../context/AppConfigContext";
 import { useNavigate } from "react-router-dom";
-/**
- * Flow:
- * 1. User picks file
- * 2. Optionally compress if image
- * 3. POST to backend /presigned-url with file name/type + Authorization header
- * 4. Backend returns { uploadUrl, documentId, s3Key }
- * 5. PUT file to uploadUrl (no auth header)
- * 6. POST /api/documents/{documentId}/complete (with Authorization) to mark upload complete
- * 7. Navigate to success or failure pages
- */
+import "../styles/FileUploadForm.css";
+
 export default function FileUploadForm() {
-  const fileRef = useRef(null);
+  const fileRef = useRef();
   const auth = useAuth();
   const dispatch = useDispatch();
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [isDragOver, setIsDragOver] = useState(false);
   const appConfig = useContext(AppConfigContext);
   const navigate = useNavigate();
+  const [isDragOver, setIsDragOver] = useState(false);
+
   const handleFile = async (file) => {
     if (!file) return;
+
     try {
       setUploading(true);
 
-      // optional compression for images
+      // optional image compression
       let fileToUpload = file;
       if (file.type.startsWith("image/")) {
         try {
@@ -43,6 +40,7 @@ export default function FileUploadForm() {
           fileToUpload = file;
         }
       }
+
       // 1. Request presigned URL
       const token = auth.user?.id_token;
       const presignRes = await axiosClient.post(
@@ -50,8 +48,10 @@ export default function FileUploadForm() {
         { fileName: file.name, fileType: file.type, fileSize: file.size },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      const { uploadUrl, documentId, s3Key } = presignRes.data;
-      // Optimistic add
+
+      const { uploadUrl, documentId } = presignRes.data;
+
+      // Optimistic update
       dispatch(
         addFileOptimistic({
           documentId,
@@ -63,28 +63,32 @@ export default function FileUploadForm() {
         })
       );
 
-      // 2. PUT to S3
+      // 2. Upload to S3
       const putResp = await fetch(uploadUrl, {
         method: "PUT",
         body: fileToUpload,
         headers: { "Content-Type": fileToUpload.type },
       });
+
       if (!putResp.ok) {
         dispatch(updateFileStatus({ documentId, status: "FAILED" }));
-        navigate("/upload-failure", { state: { documentId, reason: "S3 upload failed" } });
+        navigate("/upload-failure", {
+          state: { documentId, reason: "S3 upload failed" },
+        });
         return;
       }
 
-      // 3. Mark complete
+      // 3. Mark complete in backend
       const completeResp = await axiosClient.post(
         `/api/documents/${documentId}/complete`,
         {
-           fileName: file.name,
+          fileName: file.name,
           fileType: file.type,
           fileSize: file.size,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       if (completeResp.status === 200 || completeResp.status === 204) {
         dispatch(updateFileStatus({ documentId, status: "COMPLETED" }));
         navigate("/upload-success", { state: { documentId } });
@@ -101,6 +105,7 @@ export default function FileUploadForm() {
       if (fileRef.current) fileRef.current.value = "";
     }
   };
+
   const onChange = async (e) => {
     const file = e.target.files[0];
     await handleFile(file);
@@ -114,19 +119,18 @@ export default function FileUploadForm() {
     if (file) await handleFile(file);
   };
   return (
-    <div className="p-6 bg-white rounded shadow max-w-2xl mx-auto">
-      <h3 className="text-xl font-semibold mb-4">Upload File</h3>
+    <div className="upload-form">
+      <h3 className="upload-title">Upload File</h3>
 
-      {/* Hidden input */}
       <input
-        ref={fileRef}
         type="file"
-        id="file-upload-input"
+        ref={fileRef}
         onChange={onChange}
-        className="hidden"
+        className="file-input hidden"
+        id="file-upload-input"
       />
 
-      {/* Dropzone */}
+          {/* Dropzone */}
       <div
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => {
@@ -146,15 +150,21 @@ export default function FileUploadForm() {
         <span className="text-sm text-gray-500">or click to upload</span>
       </div>
 
+
+
       {uploading && (
-        <div className="mt-4">
-          <p>Uploading... {progress}%</p>
-          <progress value={progress} max="100" className="w-full"></progress>
+        <div className="progress-section">
+          <p className="progress-text">Uploading... {progress}%</p>
+          <progress
+            value={progress}
+            max="100"
+            className="progress-bar"
+          ></progress>
         </div>
       )}
 
-      <p className="mt-3 text-sm text-gray-500">
-        Files are uploaded directly to S3 via presigned URL.
+      <p className="upload-note">
+        Files are uploaded directly to AWS S3 via presigned URL.
       </p>
     </div>
   );

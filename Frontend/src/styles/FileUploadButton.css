@@ -1,0 +1,43 @@
+/* WRAPPER */
+.upload-btn-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  font-family: "Inter", sans-serif;
+}
+
+/* Hide actual file input */
+.hidden-file-input {
+  display: none;
+}
+
+/* BROWSE BUTTON */
+.browse-btn {
+  padding: 12px 24px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: 0.25s ease;
+}
+
+.browse-btn:hover {
+  background: #1e4fcc;
+}
+
+/* DISABLED STATE */
+.browse-btn.disabled,
+.browse-btn:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .browse-btn {
+    width: 100%;
+  }
+}

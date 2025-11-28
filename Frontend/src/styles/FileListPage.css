@@ -1,0 +1,49 @@
+/* PAGE WRAPPER */
+.filelist-page {
+  min-height: 100vh;
+  background: #f7f9fc;
+  font-family: "Inter", sans-serif;
+}
+
+/* CONTENT BOX */
+.filelist-container {
+  max-width: 900px;
+  width: 90%;
+  margin: 40px auto;
+  padding: 30px;
+  background: #ffffff;
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.4s ease;
+}
+
+/* TITLE */
+.filelist-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .filelist-container {
+    padding: 20px;
+  }
+
+  .filelist-title {
+    font-size: 1.6rem;
+  }
+}

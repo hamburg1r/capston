@@ -1,26 +1,35 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import "../styles/FileItem.css";
 
 export default function FileItem({ file }) {
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   const openPreview = () => {
-    // navigate to preview page
-    nav(`/files/${file.id}`);
+    navigate(`/files/${file.id}`);
   };
 
   return (
-    <div>
-      <div>
-        <div>{file.name}</div>
-        <div>{file.mimeType}</div>
-        <div>{file.size}</div>
+    <div className="file-item">
+      <div className="file-info">
+        <div className="file-name">{file.name}</div>
+
+        <div className="file-meta">
+          <span className="meta-label">Type:</span> {file.mimeType}
+        </div>
+
+        <div className="file-meta">
+          <span className="meta-label">Size:</span> {file.size} KB
+        </div>
       </div>
 
-      <div>
-        <button onClick={openPreview}>Preview</button>
-        <a href={file.url} download={file.name}>
-          <button>Download</button>
+      <div className="file-actions">
+        <button className="btn-preview" onClick={openPreview}>
+          Preview
+        </button>
+
+        <a href={file.url} download={file.name} className="download-link">
+          <button className="btn-download">Download</button>
         </a>
       </div>
     </div>

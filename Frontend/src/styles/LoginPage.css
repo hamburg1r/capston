@@ -1,0 +1,77 @@
+/* PAGE WRAPPER */
+.login-page {
+  min-height: 100vh;
+  background: #f7f9fc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  font-family: "Inter", sans-serif;
+}
+
+/* LOGIN CARD */
+.login-card {
+  background: #ffffff;
+  width: 380px;
+  padding: 32px;
+  border-radius: 14px;
+  margin-top: 120px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+  text-align: center;
+  animation: fadeIn 0.5s ease;
+}
+
+/* TITLE */
+.login-title {
+  font-size: 1.9rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 20px;
+}
+
+/* PRIMARY LOGIN BUTTON */
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  background: #2563eb;
+  color: white;
+  font-size: 1rem;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.login-btn:hover {
+  background: #1e4fcc;
+}
+
+/* SMALL TEXT */
+.login-note {
+  margin-top: 16px;
+  font-size: 0.9rem;
+  color: #6b7280;
+}
+
+/* ANIMATIONS */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+/* RESPONSIVE */
+@media (max-width: 480px) {
+  .login-card {
+    width: 90%;
+    padding: 26px;
+  }
+
+  .login-title {
+    font-size: 1.6rem;
+  }
+}
