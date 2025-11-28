@@ -94,7 +94,7 @@ export default function FileUploadForm() {
         navigate("/upload-success", { state: { documentId } });
       } else {
         dispatch(updateFileStatus({ documentId, status: "PROCESSING" }));
-        navigate("/upload-success", { state: { documentId } });
+        // navigate("/upload-success", { state: { documentId } });
       }
     } catch (err) {
       console.error("Upload error", err);

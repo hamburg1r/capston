@@ -1,12 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axiosClient from "../../api/axiosClient";
 
-/**
- * filesSlice will keep user's file list & statuses.
- * We use thunks to call backend endpoints which require auth header.
- */
-
-// fetch user's files
 export const fetchFiles = createAsyncThunk(
   "files/fetchFiles",
   async ({ token }, { rejectWithValue }) => {
@@ -56,6 +50,11 @@ const filesSlice = createSlice({
         f.documentId === documentId ? { ...f, status } : f
       );
     },
+
+    deleteByDocumentId(state, action){
+      const id = action.payload;
+      return {...state, items: state.items.filter(item => item.documentId !== id)};
+    }
   },
   extraReducers: (builder) => {
     builder
@@ -83,5 +82,5 @@ const filesSlice = createSlice({
   },
 });
 
-export const { addFileOptimistic, updateFileStatus } = filesSlice.actions;
+export const { addFileOptimistic, updateFileStatus , deleteByDocumentId} = filesSlice.actions;
 export default filesSlice.reducer;
