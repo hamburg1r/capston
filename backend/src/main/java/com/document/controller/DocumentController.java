@@ -2,18 +2,20 @@ package com.document.controller;
 
 import com.document.dto.DocumentResponseDTO;
 import com.document.dto.DocumentUploadRequestDto;
+import com.document.exception.DocumentNotFoundException;
 import com.document.model.DocumentModel;
 import com.document.service.DocumentServiceImp;
 import com.document.service.S3Service;
 import com.document.service.SNSService;
 import com.document.service.SQSService;
+import jakarta.servlet.http.HttpServletRequest;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/documents")
@@ -24,11 +26,10 @@ public class DocumentController {
     private final SNSService snsService;
     private final SQSService sqsService;
 
-    public DocumentController(
-            DocumentServiceImp documentService,
-            S3Service s3Service,
-            SNSService snsService,
-            SQSService sqsService) {
+    public DocumentController(DocumentServiceImp documentService,
+                              S3Service s3Service,
+                              SNSService snsService,
+                              SQSService sqsService) {
         this.documentService = documentService;
         this.s3Service = s3Service;
         this.snsService = snsService;
@@ -36,78 +37,83 @@ public class DocumentController {
     }
 
     @PostMapping("/presigned-url")
-    public ResponseEntity<DocumentResponseDTO> generatePresignedUrl(@RequestBody DocumentUploadRequestDto req) {
+    public ResponseEntity<?> generatePresignedUrl(@RequestBody DocumentUploadRequestDto req) {
+        try {
+            String userId = getUserId();
+            DocumentModel document = documentService.createDocument(
+                    userId, req.getFileName(), req.getFileType(), req.getFileSize()
+            );
 
-        String fileName = req.getFileName();
-        String fileType = req.getFileType();
-        String fileSize = req.getFileSize();
+            String s3Key = userId + "/" + document.getDocumentId() + "/" + req.getFileName();
+            String url = s3Service.generatePresignedUrl(s3Key, req.getFileType());
 
-        String userId = getUserId();
+            url = url.replace("http://", "https://"); // force HTTPS
 
-        DocumentModel document = documentService.createDocument(userId, fileName, fileType, fileSize);
-        String s3Key = userId + "/" + document.getDocumentId() + "/" + fileName;
+            DocumentResponseDTO response = new DocumentResponseDTO();
+            response.setDocumentId(document.getDocumentId());
+            response.setUploadUrl(url);
 
-        String uploadUrl = s3Service.generatePresignedUrl(s3Key, fileType);
+            return ResponseEntity.ok(response);
 
-        DocumentResponseDTO documentResponseDTO = new DocumentResponseDTO();
-        documentResponseDTO.setUploadUrl(uploadUrl);
-        documentResponseDTO.setDocumentId(document.getDocumentId());
-
-        return ResponseEntity.ok(documentResponseDTO);
+        } catch (Exception ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Upload URL create failed: " + ex.getMessage());
+        }
     }
 
     @PostMapping("/{documentId}/complete")
-    public ResponseEntity<Map<String, String>> markUploadComplete(
-            @PathVariable String documentId, @RequestBody DocumentModel req) {
+    public ResponseEntity<?> markUploadComplete(@PathVariable String documentId,
+                                                @RequestBody DocumentModel req) {
+        try {
+            String userId = getUserId();
+            documentService.markUploadCompleted(documentId, userId, req.getFileName(),
+                    req.getFileType(), req.getFileSize());
 
-        String userId = getUserId();
+            return ResponseEntity.ok(Map.of("message", "Upload Completed"));
 
-        documentService.markUploadCompleted(
-                documentId, userId, req.getFileName(), req.getFileType(), req.getFileSize()
-        );
-
-        String snsMessageId = snsService.publishDocumentUploadNotification(
-                documentId, userId, req.getFileName(), req.getFileType(), req.getFileSize()
-        );
-
-        String s3Key = userId + "/" + documentId + "/" + req.getFileName();
-        String sqsMessageId = sqsService.sendDocumentProcessingTask(
-                documentId, userId, req.getFileName(), req.getFileType(), s3Key
-        );
-
-        sqsService.sendMetadataExtractionTask(documentId, userId, s3Key, req.getFileType());
-
-        Map<String, String> response = new HashMap<>();
-        response.put("message", "Document upload completed");
-        response.put("snsMessageId", snsMessageId);
-        response.put("sqsMessageId", sqsMessageId);
-
-        return ResponseEntity.ok(response);
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document Not Found!");
+        }
     }
 
     @GetMapping
-    public ResponseEntity<List<DocumentModel>> getUserDocuments() {
+    public ResponseEntity<?> getUserDocuments() {
         String userId = getUserId();
         List<DocumentModel> list = documentService.getUserDocuments(userId);
         return ResponseEntity.ok(list);
     }
 
     @GetMapping("/download/{documentId}")
-    public ResponseEntity<String> download(@PathVariable String documentId) {
-        String userId = getUserId();
-        String url = documentService.generateDownloadUrl(documentId, userId);
-        return ResponseEntity.ok(url);
+    public ResponseEntity<?> download(@PathVariable String documentId) {
+        try {
+            String userId = getUserId();
+            String url = documentService.generateDownloadUrl(documentId, userId);
+
+            url = url.replace("http://", "https://"); // enforce SSL
+
+            return ResponseEntity.ok(Map.of("downloadUrl", url));
+
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Document Not Found");
+        }
     }
 
     @DeleteMapping("/{documentId}")
-    public ResponseEntity<Void> deleteDocument(@PathVariable String documentId) {
-        String userId = getUserId();
-        documentService.deleteDocument(documentId, userId);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<?> deleteDocument(@PathVariable String documentId) {
+        try {
+            String userId = getUserId();
+            documentService.deleteDocument(documentId, userId);
+            return ResponseEntity.noContent().build();
+
+        } catch (DocumentNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Delete Failed: Not Found");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body("S3 Permission Denied: " + e.getMessage());
+        }
     }
 
     private String getUserId() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return principal.toString();
+        return SecurityContextHolder.getContext().getAuthentication().getPrincipal().toString();
     }
 }
