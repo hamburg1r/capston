@@ -1,4 +1,8 @@
 package com.document.security;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -11,7 +15,12 @@ import org.springframework.web.filter.CorsFilter;
 @Configuration
 public class SecurityConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(SecurityConfig.class);
+
     private final JwtFilter jwtFilter;
+
+    @Value("${app.frontend.url}")
+    private String frontendUrl;
 
     public SecurityConfig(JwtFilter jwtFilter) {
         this.jwtFilter = jwtFilter;
@@ -20,12 +29,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 
+        logger.info("Setting Security Configurations...");
+
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {}) // Required in Spring Security 7
+                .cors(cors -> {})
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/home/**").permitAll()
-                        .requestMatchers("/api/**", "/test/**", "/documents/**").authenticated()
+                        .requestMatchers("/api/**", "/test/**").authenticated()
                         .anyRequest().permitAll()
                 )
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
@@ -35,9 +46,10 @@ public class SecurityConfig {
 
     @Bean
     public CorsFilter corsFilter() {
-        CorsConfiguration config = new CorsConfiguration();
+        logger.info("Applying CORS config for frontend: {}", frontendUrl);
 
-        config.addAllowedOrigin("http://localhost:5173"); // ⭐ Vite frontend allowed
+        CorsConfiguration config = new CorsConfiguration();
+        config.addAllowedOrigin(frontendUrl);
         config.addAllowedHeader("*");
         config.addAllowedMethod("*");
         config.setAllowCredentials(true);
