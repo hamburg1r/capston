@@ -31,7 +31,6 @@ export default function LoginPage() {
 
   return (
     <div>
-      <Navbar />
       <div className="max-w-md mx-auto mt-20 p-6 bg-white rounded shadow">
         <h2 className="text-2xl mb-4">Login</h2>
         <button

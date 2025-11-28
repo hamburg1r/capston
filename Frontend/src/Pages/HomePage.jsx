@@ -17,7 +17,6 @@ export default function HomePage() {
   // Still show homepage for unauthenticated users
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <div className="max-w-3xl mx-auto py-16 text-center">
         <h1 className="text-4xl font-bold mb-4">Secure File Upload & Manager</h1>
         <p className="mb-8">Upload files to S3 and manage them easily.</p>

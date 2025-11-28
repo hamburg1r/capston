@@ -1,13 +1,12 @@
 package com.document.service;
 
-
-
-
 import com.document.model.DocumentModel;
 import com.document.repository.DocumentRepository;
 
 
 import org.springframework.stereotype.Service;
+// import org.springframework.transaction.annotation.Transactional;
+
 
 import java.time.LocalDateTime;
 
@@ -15,6 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+// @Transactional
 public class DocumentServiceImp implements DocumentService {
 
 	private final DocumentRepository repo;
@@ -24,7 +24,7 @@ public class DocumentServiceImp implements DocumentService {
         this.repo = repo;
         this.s3Service = s3Service;
     }
-
+    // @Transactional(rollbackFor = Exception.class)
     public DocumentModel createDocument(String userId, String fileName, String fileType,String fileSize) {
 
     	DocumentModel doc = new DocumentModel();
