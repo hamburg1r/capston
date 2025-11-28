@@ -9,6 +9,7 @@ import com.document.service.S3Service;
 import com.document.service.SNSService;
 import com.document.service.SQSService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -37,7 +38,7 @@ public class DocumentController {
     }
 
     @PostMapping("/presigned-url")
-    public ResponseEntity<?> generatePresignedUrl(@RequestBody DocumentUploadRequestDto req) {
+    public ResponseEntity<?> generatePresignedUrl(@RequestBody    @Valid DocumentUploadRequestDto req) {
         try {
             String userId = getUserId();
             DocumentModel document = documentService.createDocument(
@@ -89,7 +90,7 @@ public class DocumentController {
             String userId = getUserId();
             String url = documentService.generateDownloadUrl(documentId, userId);
 
-            url = url.replace("http://", "https://"); // enforce SSL
+           // url = url.replace("http://", "https://"); // enforce SSL
 
             return ResponseEntity.ok(Map.of("downloadUrl", url));
 
