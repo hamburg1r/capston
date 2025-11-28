@@ -3,11 +3,14 @@ package com.document.repository;
 
 
 import com.amazonaws.services.dynamodbv2.datamodeling.*;
+import com.amazonaws.services.dynamodbv2.model.AttributeValue;
 import com.document.model.DocumentModel;
 
 import org.springframework.stereotype.Repository;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Repository
 public class DocumentRepository {
@@ -23,16 +26,23 @@ public class DocumentRepository {
     }
 
     public List<DocumentModel> findByUserId(String userId) {
-        DocumentModel doc = new DocumentModel();
-        doc.setUserId(userId);
 
-        DynamoDBQueryExpression<DocumentModel> query = new DynamoDBQueryExpression<DocumentModel>()
-                .withHashKeyValues(doc);
+        Map<String, AttributeValue> eav = new HashMap<>();
+        eav.put(":uid", new AttributeValue().withS(userId));
 
-        return dynamoDBMapper.query(DocumentModel.class, query);
+        DynamoDBScanExpression scanExpression = new DynamoDBScanExpression()
+                .withFilterExpression("userId = :uid")
+                .withExpressionAttributeValues(eav);
+
+        return dynamoDBMapper.scan(DocumentModel.class, scanExpression);
     }
 
     public DocumentModel findByDocumentIdAndUserId(String documentId, String userId) {
         return dynamoDBMapper.load(DocumentModel.class, documentId, userId);
+    }
+    
+
+    public void delete(DocumentModel doc) {
+        dynamoDBMapper.delete(doc);
     }
 }

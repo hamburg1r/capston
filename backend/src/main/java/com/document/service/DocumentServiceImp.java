@@ -5,19 +5,24 @@ package com.document.service;
 
 import com.document.model.DocumentModel;
 import com.document.repository.DocumentRepository;
+
+
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+
 import java.util.List;
 import java.util.UUID;
 
 @Service
 public class DocumentServiceImp implements DocumentService {
 
-    private final DocumentRepository repo;
+	private final DocumentRepository repo;
+    private final S3Service s3Service;
 
-    public DocumentServiceImp(DocumentRepository repo) {
+    public DocumentServiceImp(DocumentRepository repo, S3Service s3Service) {
         this.repo = repo;
+        this.s3Service = s3Service;
     }
 
     public DocumentModel createDocument(String userId, String fileName, String fileType,String fileSize) {
@@ -67,4 +72,29 @@ public class DocumentServiceImp implements DocumentService {
 		
 		repo.save(doc);
 		}
+    public String generateDownloadUrl(String documentId, String userId) {
+        DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
+        if (doc == null) {
+            throw new RuntimeException("Document Not Found");
+        }
+
+        return s3Service.generateDownloadUrl(doc.getS3Key());
+    }
+    public void deleteDocument(String documentId, String userId) {
+
+        DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
+        if (doc == null) {
+            throw new RuntimeException("Document not found or not owned by user");
+        }
+
+        
+        if (doc.getS3Key() != null) {
+            s3Service.deleteFile(doc.getS3Key());
+        }
+
+       
+        repo.delete(doc);
+    }
+   
+
 }

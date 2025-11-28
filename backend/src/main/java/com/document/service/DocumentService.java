@@ -11,4 +11,6 @@ public interface DocumentService {
 	public List<DocumentModel> getUserDocuments(String userId);
 	public void markUploadCompleted(String documentId, String userId,
             String fileName, String fileType, String fileSize) ;
+	public String generateDownloadUrl(String documentId, String userId);
+	public void deleteDocument(String documentId, String userId);
 }

@@ -60,4 +60,23 @@ public class S3Service {
 
         return url.toString();
     }
+    public String generateDownloadUrl(String s3Key) {
+
+        Date expiration = new Date();
+        expiration.setTime(System.currentTimeMillis() + 5 * 60 * 1000); // 5 min
+
+        GeneratePresignedUrlRequest request =
+                new GeneratePresignedUrlRequest(bucketName, s3Key)
+                        .withMethod(HttpMethod.GET)
+                        .withExpiration(expiration);
+
+        URL url = s3Client.generatePresignedUrl(request);
+
+        return url.toString();
+    }
+    public void deleteFile(String s3Key) {
+        s3Client.deleteObject(bucketName, s3Key);
+    }
+
+
 }
