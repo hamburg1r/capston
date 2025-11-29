@@ -1,5 +1,6 @@
 package com.document.service;
 
+import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
@@ -97,4 +98,6 @@ public class SNSService {
             throw new RuntimeException("SNS publish failed", e);
         }
     }
+    
+
 }
