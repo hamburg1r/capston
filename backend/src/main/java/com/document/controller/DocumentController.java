@@ -100,6 +100,7 @@ public class DocumentController {
             String url = documentService.generateDownloadUrl(documentId, userId);
 
             log.info(" Download URL generated for documentId={}", documentId);
+         
             return ResponseEntity.ok(Map.of("downloadUrl", url));
 
         } catch (DocumentNotFoundException e) {
