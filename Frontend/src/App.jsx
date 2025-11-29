@@ -1,7 +1,6 @@
 import { useAuth } from "react-oidc-context";
 import { Navigate, Routes, Route } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import WelcomePage from "./pages/WelcomePage";
 import FileUploadPage from "./pages/FileUploadPage";
 import FileListPage from "./pages/FileListPage";
 import UploadSuccessPage from "./pages/UploadSuccessPage";
@@ -9,6 +8,7 @@ import UploadFailurePage from "./pages/UploadFailurePage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./Pages/LoginPage";
 import SignupPage from "./Pages/SignupPage";
+import WelcomePage from "./Pages/WelcomePage";
 
 export default function App() {
   const auth = useAuth();

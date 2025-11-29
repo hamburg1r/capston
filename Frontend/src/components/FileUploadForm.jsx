@@ -27,7 +27,7 @@ export default function FileUploadForm() {
     try {
       setUploading(true);
 
-      // optional image compression
+      //imageCompression
       let fileToUpload = file;
       if (file.type.startsWith("image/")) {
         try {
@@ -41,7 +41,7 @@ export default function FileUploadForm() {
         }
       }
 
-      // 1. Request presigned URL
+      //ReqResigned URL
       const token = auth.user?.id_token;
       const presignRes = await axiosClient.post(
         "/api/documents/presigned-url",
@@ -51,7 +51,7 @@ export default function FileUploadForm() {
 
       const { uploadUrl, documentId } = presignRes.data;
 
-      // Optimistic update
+      //Optimisticupdate
       dispatch(
         addFileOptimistic({
           documentId,
@@ -63,7 +63,7 @@ export default function FileUploadForm() {
         })
       );
 
-      // 2. Upload to S3
+      //UploadToS3
       const putResp = await fetch(uploadUrl, {
         method: "PUT",
         body: fileToUpload,
@@ -78,7 +78,7 @@ export default function FileUploadForm() {
         return;
       }
 
-      // 3. Mark complete in backend
+      //MarkCompleteInBackend
       const completeResp = await axiosClient.post(
         `/api/documents/${documentId}/complete`,
         {

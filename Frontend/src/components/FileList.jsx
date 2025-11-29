@@ -45,7 +45,7 @@ export default function FileList() {
           headers: { Authorization: `Bearer ${auth.user?.id_token}` },
         }
       );
-      window.open(response.data, "_blank"); // File open/download
+      window.open(response.data, "_blank");
     } catch (err) {
       console.error("Download failed", err);
       alert("Download failed!");
