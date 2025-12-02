@@ -1,10 +1,5 @@
 package com.document.aws;
 
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -35,17 +30,4 @@ public class SQSConfig {
                                                                 new BasicAWSCredentials(awsAccessKey, awsSecretKey)))
                                 .build();
         }
-
-        // Add this when creating your SQS client
-        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
-                public X509Certificate[] getAcceptedIssuers() {
-                        return null;
-                }
-
-                public void checkClientTrusted(X509Certificate[] certs, String authType) {
-                }
-
-                public void checkServerTrusted(X509Certificate[] certs, String authType) {
-                }
-        } };
 }
