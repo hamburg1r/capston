@@ -12,42 +12,37 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // when auth gets set from react-oidc-context, save token to redux for app usage
-    //  dont use auth.isAuthenticated  , in if  either error  , also remove from dependency array ...
-    if (auth.user) {
-      console.log("🔵 OIDC user object:", auth.user);
+    
+    //AutoRedirectTocognito login as soon as this page loads
+    if (!auth.user && !auth.isLoading) {
+      auth.signinRedirect();
+      return;
+    }
 
+    // When Cognito redirects back with token
+    if (auth.user) {
       dispatch(
         setAuth({
-          accessToken: auth.user?.access_token || auth.user?.accessToken,
-          idToken: auth.user?.id_token,
-          profile: auth.user?.profile,
+          accessToken: auth.user.access_token || auth.user.accessToken,
+          idToken: auth.user.id_token,
+          profile: auth.user.profile,
         })
       );
-
       navigate("/welcome", { replace: true });
-    } else if (auth.error) {
+    }
+
+    // If login failed → send user to Sign Up page
+    if (auth.error) {
       navigate("/signup");
     }
-  }, [auth.user, auth.error, dispatch, navigate]);
+  }, [auth.user, auth.error, auth.isLoading, dispatch, navigate]);
 
   return (
     <div className="login-page">
       <Navbar />
-
       <div className="login-card">
-        <h2 className="login-title">Welcome Back</h2>
-
-        <button
-          onClick={() => auth.signinRedirect()}
-          className="login-btn"
-        >
-          Sign in with Cognito
-        </button>
-
-        <p className="login-note">
-          After successful login, you’ll be redirected to your dashboard.
-        </p>
+        <h2 className="login-title">Redirecting to Login...</h2>
+        <p className="login-note">Please wait while we connect you securely.</p>
       </div>
     </div>
   );

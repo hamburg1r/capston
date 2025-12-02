@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./Pages/LoginPage";
 import SignupPage from "./Pages/SignupPage";
 import WelcomePage from "./Pages/WelcomePage";
+import FilePreview from "./Pages/FilePreview";
 
 export default function App() {
   const auth = useAuth();
@@ -49,6 +50,14 @@ export default function App() {
         element={
           <ProtectedRoute>
             <FileListPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/files/:id"
+        element={
+          <ProtectedRoute>
+            <FilePreview></FilePreview>
           </ProtectedRoute>
         }
       />

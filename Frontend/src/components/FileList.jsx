@@ -5,6 +5,7 @@ import {deleteByDocumentId} from "../store/slices/filesSlice"
 import { useAuth } from "react-oidc-context";
 import axios from "axios";
 import "../styles/FileList.css";
+import { Link } from "react-router-dom";
 
 export default function FileList() {
   const dispatch = useDispatch();
@@ -79,13 +80,22 @@ export default function FileList() {
               <span className={`file-status ${f.status.toLowerCase()}`}>
                 {f.status}
               </span>
-              {f.status === "COMPLETED" && (
+              {(f.status === "COMPLETED" || f.status === "METADATA_EXTRACTED") && (
+                <>
                 <button
                   className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
                   onClick={() => downloadFile(f.documentId)}
-                >
+                  >
                   Download
                 </button>
+                <Link  to={`/files/${f.documentId}`} >
+                
+                <button
+                  className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                  Preview
+                </button>
+                  </Link>
+                    </>
               )}
               <button
                 className="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600 ml-2"
