@@ -90,4 +90,12 @@ public class DocumentModel {
     public void setUploadDate(String uploadDate) {
         this.uploadDate = uploadDate;
     }
+
+	@Override
+	public String toString() {
+		return "DocumentModel [documentId=" + documentId + ", userId=" + userId + ", fileName=" + fileName
+				+ ", fileType=" + fileType + ", fileSize=" + fileSize + ", s3Key=" + s3Key + ", status=" + status
+				+ ", uploadDate=" + uploadDate + "]";
+	}
+    
 }

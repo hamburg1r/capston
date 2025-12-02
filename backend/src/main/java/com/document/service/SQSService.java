@@ -3,15 +3,19 @@ package com.document.service;
 import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class SQSService {
+
+    private static final Logger log = LoggerFactory.getLogger(SQSService.class);
 
     private final AmazonSQS sqsClient;
     private final String queueUrl;
@@ -26,9 +30,7 @@ public class SQSService {
         this.objectMapper = new ObjectMapper();
     }
 
-    
-    //  Send document processing task to SQS queue
-    
+    // Send document processing task to SQS
     public String sendDocumentProcessingTask(
             String documentId,
             String userId,
@@ -36,6 +38,7 @@ public class SQSService {
             String fileType,
             String s3Key
     ) {
+        log.info("Sending SQS processing task for documentId={} by user={}", documentId, userId);
         try {
             Map<String, Object> taskMessage = new HashMap<>();
             taskMessage.put("taskType", "PROCESS_DOCUMENT");
@@ -51,28 +54,27 @@ public class SQSService {
             SendMessageRequest sendMessageRequest = new SendMessageRequest()
                     .withQueueUrl(queueUrl)
                     .withMessageBody(messageJson)
-                    .withDelaySeconds(0); // Process immediately
+                    .withDelaySeconds(0);
 
             SendMessageResult result = sqsClient.sendMessage(sendMessageRequest);
 
-            System.out.println("SQS Message sent. MessageId: " + result.getMessageId());
+            log.info("SQS Processing Message Sent | MessageId={}", result.getMessageId());
             return result.getMessageId();
 
         } catch (Exception e) {
-            System.err.println("Failed to send SQS message: " + e.getMessage());
-            throw new RuntimeException("SQS send failed", e);
+            log.error("Failed to send SQS processing task: {}", e.getMessage());
+            throw new RuntimeException("Processing task failed", e);
         }
     }
 
-    
-    //  Send document metadata extraction task
-    
+    // Send metadata extraction task to SQS
     public String sendMetadataExtractionTask(
             String documentId,
             String userId,
             String s3Key,
             String fileType
     ) {
+        log.info("Sending SQS metadata extraction task for documentId={} by user={}", documentId, userId);
         try {
             Map<String, Object> taskMessage = new HashMap<>();
             taskMessage.put("taskType", "EXTRACT_METADATA");
@@ -87,16 +89,16 @@ public class SQSService {
             SendMessageRequest sendMessageRequest = new SendMessageRequest()
                     .withQueueUrl(queueUrl)
                     .withMessageBody(messageJson)
-                    .withDelaySeconds(5); // Wait 5 seconds before processing
+                    .withDelaySeconds(5);
 
             SendMessageResult result = sqsClient.sendMessage(sendMessageRequest);
 
-            System.out.println("Metadata extraction task sent. MessageId: " + result.getMessageId());
+            log.info("SQS Metadata Task Sent | MessageId={}", result.getMessageId());
             return result.getMessageId();
 
         } catch (Exception e) {
-            System.err.println("Failed to send metadata extraction task: " + e.getMessage());
-            throw new RuntimeException("SQS send failed", e);
+            log.error("Failed to send SQS metadata task: {}", e.getMessage());
+            throw new RuntimeException("Metadata task failed", e);
         }
     }
 }

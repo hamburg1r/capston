@@ -24,132 +24,100 @@ public class DocumentServiceImp implements DocumentService {
         this.s3Service = s3Service;
     }
 
+    @Override
     public DocumentModel createDocument(String userId, String fileName, String fileType, String fileSize) {
-        log.info(" Creating document for userId={}, fileName={}", userId, fileName);
-        try {
-            DocumentModel doc = new DocumentModel();
-            doc.setDocumentId(UUID.randomUUID().toString());
-            doc.setUserId(userId);
-            doc.setFileName(fileName);
-            doc.setFileType(fileType);
-            doc.setFileSize(fileSize);
-            doc.setStatus("UPLOADED");
-            doc.setUploadDate(LocalDateTime.now().toString());
+        log.info("Creating document for userId={}, fileName={}", userId, fileName);
 
-            repo.save(doc);
+        DocumentModel doc = new DocumentModel();
+        doc.setDocumentId(UUID.randomUUID().toString());
+        doc.setUserId(userId);
+        doc.setFileName(fileName);
+        doc.setFileType(fileType);
+        doc.setFileSize(fileSize);
+        doc.setStatus("UPLOADED");
+        doc.setUploadDate(LocalDateTime.now().toString());
 
-            log.info(" Document created successfully: docId={}", doc.getDocumentId());
-            return doc;
-
-        } catch (Exception ex) {
-            log.error(" Failed to create document: {}", ex.getMessage());
-            throw new RuntimeException("Failed to create document: " + ex.getMessage());
-        }
-    }
-
-    public void updateDocument(DocumentModel doc) {
-        log.info(" Updating document docId={}", doc.getDocumentId());
-        try {
-            repo.save(doc);
-            log.info(" Document updated successfully docId={}", doc.getDocumentId());
-        } catch (Exception ex) {
-            log.error(" Failed to update document: {}", ex.getMessage());
-            throw new RuntimeException("Failed to update document: " + ex.getMessage());
-        }
-    }
-
-    public DocumentModel getById(String docId, String userId) {
-        log.info(" Finding document docId={} for userId={}", docId, userId);
-        DocumentModel doc = repo.findByDocumentIdAndUserId(docId, userId);
-
-        if (doc == null) {
-            log.warn(" Document not found: {}", docId);
-            throw new DocumentNotFoundException("Document not found");
-        }
-
-        log.info(" Document found for docId={}", docId);
+        repo.save(doc);
+        log.info("Document created successfully: docId={}", doc.getDocumentId());
         return doc;
     }
 
+    @Override
+    public void updateDocument(DocumentModel doc) {
+        log.info("Updating document docId={}", doc.getDocumentId());
+        repo.save(doc);
+    }
+
+    @Override
+    public DocumentModel getById(String docId, String userId) {
+        log.info("Searching document docId={} userId={}", docId, userId);
+
+        DocumentModel doc = repo.findByDocumentIdAndUserId(docId, userId);
+
+        if (doc == null) {
+            log.warn("Document not found: {}", docId);
+            throw new DocumentNotFoundException(docId, userId); // 🔹CUSTOM EXCEPTION
+        }
+        return doc;
+    }
+
+    @Override
     public List<DocumentModel> getUserDocuments(String userId) {
-        log.info(" Fetching document list for user={}", userId);
-        try {
-            return repo.findByUserId(userId);
-        } catch (Exception ex) {
-            log.error(" Failed to fetch user documents: {}", ex.getMessage());
-            throw new RuntimeException("Failed to fetch user documents: " + ex.getMessage());
-        }
+        log.info("Fetching documents for user={}", userId);
+        return repo.findByUserId(userId);
     }
 
+    @Override
     public void markUploadCompleted(String documentId, String userId,
-                                    String fileName, String fileType, String fileSize) {
-        log.info(" Marking upload complete for docId={} by user={}", documentId, userId);
-        try {
-            DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
+                                   String fileName, String fileType, String fileSize) {
 
-            if (doc == null) {
-                log.warn(" Document not found while completing upload: {}", documentId);
-                throw new DocumentNotFoundException("Document not found while completing upload");
-            }
+        log.info("Marking upload complete for docId={} userId={}", documentId, userId);
 
-            String s3Key = userId + "/" + documentId + "/" + fileName;
+        DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
 
-            doc.setFileName(fileName);
-            doc.setFileType(fileType);
-            doc.setFileSize(fileSize);
-            doc.setS3Key(s3Key);
-            doc.setStatus("COMPLETED");
-
-            repo.save(doc);
-
-            log.info(" Upload completed & document updated: {}", documentId);
-
-        } catch (Exception ex) {
-            log.error(" Failed to complete upload: {}", ex.getMessage());
-            throw ex;
+        if (doc == null) {
+            throw new DocumentNotFoundException(documentId, userId);
         }
+
+        String s3Key = userId + "/" + documentId + "/" + fileName;
+
+        doc.setFileName(fileName);
+        doc.setFileType(fileType);
+        doc.setFileSize(fileSize);
+        doc.setS3Key(s3Key);
+        doc.setStatus("COMPLETED");
+
+        repo.save(doc);
     }
 
+    @Override
     public String generateDownloadUrl(String documentId, String userId) {
-        log.info(" Generating download URL for docId={} user={}", documentId, userId);
-        try {
-            DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
-            if (doc == null) {
-                log.warn(" Document not found while generating download URL: {}", documentId);
-                throw new DocumentNotFoundException("Document not found for download");
-            }
+        log.info("Generating download URL for docId={}", documentId);
 
-            String url = s3Service.generateDownloadUrl(doc.getS3Key());
-            log.info(" Download URL generated for docId={}", documentId);
-
-            return url;
-
-        } catch (Exception ex) {
-            log.error(" Failed to generate download URL: {}", ex.getMessage());
-            throw ex;
+        DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
+        if (doc == null) {
+            throw new DocumentNotFoundException(documentId, userId);
         }
+
+        return s3Service.generateDownloadUrl(doc.getS3Key());
     }
 
+    @Override
     public void deleteDocument(String documentId, String userId) {
-        log.info(" Deleting document docId={}", documentId);
-        try {
-            DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
-            if (doc == null) {
-                log.warn(" Document not found to delete: {}", documentId);
-                throw new DocumentNotFoundException("Document not found to delete");
-            }
+        log.info("Deleting document docId={}", documentId);
 
-            if (doc.getS3Key() != null) {
-                s3Service.deleteFile(doc.getS3Key());
-                log.info(" S3 file deleted: {}", doc.getS3Key());
-            }
+        DocumentModel doc = repo.findByDocumentIdAndUserId(documentId, userId);
 
-            repo.delete(doc);
-            log.info(" Document deleted from DB docId={}", documentId);
-
-        } catch (Exception ex) {
-            log.error(" Failed to delete document: {}", ex.getMessage());
-            throw ex;
+        if (doc == null) {
+            throw new DocumentNotFoundException(documentId, userId);
         }
+
+        if (doc.getS3Key() != null) {
+            s3Service.deleteFile(doc.getS3Key());
+            log.info("S3 file deleted: {}", doc.getS3Key());
+        }
+
+        repo.delete(doc);
+        log.info("Document deleted from DB docId={}", documentId);
     }
 }

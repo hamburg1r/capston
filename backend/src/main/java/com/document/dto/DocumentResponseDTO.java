@@ -1,7 +1,11 @@
 package com.document.dto;
 
+import jakarta.validation.constraints.NotNull;
+
 public class DocumentResponseDTO {
+	@NotNull
     private String documentId;
+	@NotNull
     private String uploadUrl;
     public DocumentResponseDTO() {}
     public DocumentResponseDTO(String documentId, String uploadUrl) {

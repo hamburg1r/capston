@@ -1,18 +1,21 @@
 package com.document.service;
 
-import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.sns.AmazonSNS;
 import com.amazonaws.services.sns.model.PublishRequest;
 import com.amazonaws.services.sns.model.PublishResult;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Service
 public class SNSService {
+
+    private static final Logger log = LoggerFactory.getLogger(SNSService.class);
 
     private final AmazonSNS snsClient;
     private final String topicArn;
@@ -49,6 +52,8 @@ public class SNSService {
 
             String messageJson = objectMapper.writeValueAsString(message);
 
+            log.info("Publishing SNS upload notification for docId={}, userId={}", documentId, userId);
+
             PublishRequest publishRequest = new PublishRequest()
                     .withTopicArn(topicArn)
                     .withMessage(messageJson)
@@ -56,11 +61,11 @@ public class SNSService {
 
             PublishResult result = snsClient.publish(publishRequest);
 
-            System.out.println("SNS Message published. MessageId: " + result.getMessageId());
+            log.info("SNS upload notification sent. MessageId={}", result.getMessageId());
             return result.getMessageId();
 
         } catch (Exception e) {
-            System.err.println("Failed to publish SNS message: " + e.getMessage());
+            log.error("Failed to publish SNS upload notification: {}", e.getMessage(), e);
             throw new RuntimeException("SNS publish failed", e);
         }
     }
@@ -83,6 +88,8 @@ public class SNSService {
 
             String messageJson = objectMapper.writeValueAsString(message);
 
+            log.info("Publishing SNS processing notification for docId={}, status={}", documentId, status);
+
             PublishRequest publishRequest = new PublishRequest()
                     .withTopicArn(topicArn)
                     .withMessage(messageJson)
@@ -90,14 +97,12 @@ public class SNSService {
 
             PublishResult result = snsClient.publish(publishRequest);
 
-            System.out.println("Processing complete notification sent. MessageId: " + result.getMessageId());
+            log.info("SNS processing notification sent. MessageId={}", result.getMessageId());
             return result.getMessageId();
 
         } catch (Exception e) {
-            System.err.println("Failed to publish processing notification: " + e.getMessage());
+            log.error("Failed to publish SNS processing notification: {}", e.getMessage(), e);
             throw new RuntimeException("SNS publish failed", e);
         }
     }
-    
-
 }

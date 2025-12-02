@@ -31,57 +31,43 @@ public class S3Service {
             @Value("${aws.region}") String region
     ) {
         this.bucketName = bucketName;
-
-        BasicAWSCredentials awsCreds = new BasicAWSCredentials(accessKey, secretKey);
-
         this.s3Client = AmazonS3ClientBuilder.standard()
                 .withRegion(region)
-                .withCredentials(new AWSStaticCredentialsProvider(awsCreds))
+                .withCredentials(new AWSStaticCredentialsProvider(
+                        new BasicAWSCredentials(accessKey, secretKey)))
                 .build();
     }
 
     public String generatePresignedUrl(String s3Key, String fileType) {
-        log.info("Generating upload URL for s3Key: {}", s3Key);
-        try {
-            Date expiration = new Date(System.currentTimeMillis() + 10 * 60 * 1000);
+        log.info("Generating upload URL for {}", s3Key);
 
-            GeneratePresignedUrlRequest req =
-                    new GeneratePresignedUrlRequest(bucketName, s3Key)
-                            .withMethod(HttpMethod.PUT)
-                            .withExpiration(expiration);
+        Date expiration = new Date(System.currentTimeMillis() + 10 * 60 * 1000);
 
-            req.addRequestParameter("Content-Type", fileType);
+        GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, s3Key)
+                .withMethod(HttpMethod.PUT)
+                .withExpiration(expiration);
 
-            URL url = s3Client.generatePresignedUrl(req);
+        req.addRequestParameter("Content-Type", fileType);
 
-            log.info("Upload URL generated successfully for {}", s3Key);
-            return url.toString();
+        URL url = s3Client.generatePresignedUrl(req);
+        log.info("Upload URL generated for {}", s3Key);
 
-        } catch (Exception ex) {
-            log.error("Error generating presigned upload URL for {}: {}", s3Key, ex.getMessage());
-            throw new RuntimeException("Failed to generate upload URL: " + ex.getMessage());
-        }
+        return url.toString();
     }
 
     public String generateDownloadUrl(String s3Key) {
-        log.info("Generating download URL for s3Key: {}", s3Key);
-        try {
-            Date expiration = new Date(System.currentTimeMillis() + 5 * 60 * 1000);
+        log.info("Generating download URL for {}", s3Key);
 
-            GeneratePresignedUrlRequest req =
-                    new GeneratePresignedUrlRequest(bucketName, s3Key)
-                            .withMethod(HttpMethod.GET)
-                            .withExpiration(expiration);
+        Date expiration = new Date(System.currentTimeMillis() + 5 * 60 * 1000);
 
-            URL url = s3Client.generatePresignedUrl(req);
+        GeneratePresignedUrlRequest req = new GeneratePresignedUrlRequest(bucketName, s3Key)
+                .withMethod(HttpMethod.GET)
+                .withExpiration(expiration);
 
-            log.info("Download URL generated successfully for {}", s3Key);
-            return url.toString();
+        URL url = s3Client.generatePresignedUrl(req);
+        log.info("Download URL generated for {}", s3Key);
 
-        } catch (Exception ex) {
-            log.error("Error generating download URL for {}: {}", s3Key, ex.getMessage());
-            throw new RuntimeException("Failed to generate download URL: " + ex.getMessage());
-        }
+        return url.toString();
     }
 
     public void deleteFile(String s3Key) {
@@ -89,18 +75,12 @@ public class S3Service {
         try {
             s3Client.deleteObject(bucketName, s3Key);
             log.info("File deleted successfully: {}", s3Key);
-
         } catch (AmazonS3Exception e) {
             if (e.getStatusCode() == 404) {
-                log.warn("File not found in S3 while deleting: {}", s3Key);
+                log.warn("File not found in S3: {}", s3Key);
                 throw new DocumentNotFoundException("File not found in S3");
             }
-            log.error("AmazonS3Exception: Failed to delete {}: {}", s3Key, e.getMessage());
-            throw new RuntimeException("Failed to delete file from S3: " + e.getMessage());
-
-        } catch (Exception ex) {
-            log.error("Unexpected error deleting {}: {}", s3Key, ex.getMessage());
-            throw new RuntimeException("Failed to delete file: " + ex.getMessage());
+            throw e; // Global handler handle karega
         }
     }
 }
