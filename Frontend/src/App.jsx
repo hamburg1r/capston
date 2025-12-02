@@ -16,13 +16,15 @@ export default function App() {
 
   return (
     <Routes>
-      {/* If logged in → go to welcome */}
       <Route
         path="/"
         element={
           auth.isAuthenticated ? <Navigate to="/welcome" /> : <HomePage />
         }
       />
+
+  
+
 
       <Route path="/login" element={<LoginPage />} />
       <Route path="/signup" element={<SignupPage />} />
@@ -35,6 +37,8 @@ export default function App() {
           </ProtectedRoute>
         }
       />
+
+
 
       <Route
         path="/upload"
@@ -65,7 +69,6 @@ export default function App() {
       <Route path="/upload-success" element={<UploadSuccessPage />} />
       <Route path="/upload-failure" element={<UploadFailurePage />} />
 
-      {/* Catch-all */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

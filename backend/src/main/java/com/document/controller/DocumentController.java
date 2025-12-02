@@ -1,5 +1,7 @@
 package com.document.controller;
 
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.util.IOUtils;
 import com.document.dto.DocumentResponseDTO;
 import com.document.dto.DocumentUploadRequestDto;
 import com.document.model.DocumentModel;
@@ -16,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -107,6 +110,18 @@ public class DocumentController {
         }
         return ResponseEntity.ok(list);
     }
+    
+    @GetMapping("/download-direct/{documentId}")
+    public ResponseEntity<byte[]> downloadDirect(@PathVariable String documentId) throws IOException {
+        String userId = getUserId();
+        DocumentModel doc = documentService.getById(documentId, userId);
+        S3Object s3Object = s3Service.getObject(doc.getS3Key());
+        byte[] fileBytes = IOUtils.toByteArray(s3Object.getObjectContent());
+        return ResponseEntity.ok()
+                .header("Content-Disposition", "attachment; filename=\"" + doc.getFileName() + "\"")
+                .header("Content-Type", doc.getFileType())
+                .body(fileBytes);
+    }
 
     @GetMapping("/{documentId}")
     public ResponseEntity<?> getDocument(@PathVariable String documentId) {
@@ -114,11 +129,11 @@ public class DocumentController {
         return ResponseEntity.ok(documentService.getById(documentId, userId));
     }
 
-    @GetMapping("/download/{documentId}")
+    @GetMapping("/view/{documentId}")
     public ResponseEntity<?> download(@PathVariable String documentId) {
         String userId = getUserId();
         String url = documentService.generateDownloadUrl(documentId, userId);
-        return ResponseEntity.ok(Map.of("downloadUrl", url));
+        return ResponseEntity.ok(Map.of("viewUrl", url));
     }
 
     @DeleteMapping("/{documentId}")

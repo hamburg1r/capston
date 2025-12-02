@@ -6,23 +6,51 @@ import { Link } from "react-router-dom";
 function FileItem({ file }) {
 const auth = useAuth();
 
-console.log(file.documentId)
+// console.log(file.documentId)
 
-   const downloadFile = async (documentId) => {
+  const downloadDirect = async (documentId, fileName) => {
+  try {
+    const response = await fetch(
+      `http://localhost:8081/api/documents/download-direct/${documentId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${auth.user?.id_token}`,
+        },
+      }
+    );
+
+    console.log(response)
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName; // auto file save
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Download failed:", error);
+    alert("Failed to download!");
+  }
+};
+
+
+
+const viewFile = async (documentId) => {
     try {
       const response = await axios.get(
-        `http://localhost:8081/api/documents/download/${documentId}`,
+        `http://localhost:8081/api/documents/view/${documentId}`,
         {
           headers: { Authorization: `Bearer ${auth.user?.id_token}` },
         }
       );
-      
-      window.open(response.data.downloadUrl, "_blank");
+      window.open(response.data.viewUrl, "_blank");
     } catch (err) {
-      console.error("Download failed", err);
-      alert("Download failed!");
+      console.error("View Request failed", err);
+      alert("View Request failed!");
     }
-  };
+  }; 
+
   if (!file) return null;
 
   return (
@@ -95,6 +123,7 @@ console.log(file.documentId)
         <div style={{ fontSize: "13px", color: "#555" }}>{file.s3Key}</div>
       </div>
 
+      
       <button
         style={{
           marginTop: "15px",
@@ -105,9 +134,24 @@ console.log(file.documentId)
           borderRadius: "5px",
           cursor: "pointer",
         }}
-        onClick={() =>downloadFile(file.documentId)}
+        onClick={() =>downloadDirect(file.documentId, file.fileName)}
       >
         ⬇️ Download File
+      </button>
+      <button
+        style={{
+          marginTop: "15px",
+          padding: "10px 20px",
+          backgroundColor: "#007bff",
+          color: "white",
+          border: "none",
+          borderRadius: "5px",
+          cursor: "pointer",
+          marginLeft:"10px"
+        }}
+        onClick={() =>viewFile(file.documentId)}
+      >
+        View
       </button>
     </div>
   );

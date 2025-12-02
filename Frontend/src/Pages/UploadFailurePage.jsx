@@ -8,19 +8,18 @@ export default function UploadFailurePage() {
   const reason = state?.reason || "Unknown error";
 
   return (
-    <div className="failure-page">
+    <>
       <Navbar />
-
+    <div className="failure-page">
       <div className="failure-card">
         <div className="failure-icon">⚠️</div>
-
         <h2 className="failure-title">Upload Failed</h2>
         <p className="failure-reason">Reason: {reason}</p>
-
         <Link to="/upload" className="retry-btn">
           Try Again
         </Link>
       </div>
     </div>
+    </>
   );
 }

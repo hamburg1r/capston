@@ -55,6 +55,10 @@
 }
 
 /* BUTTONS */
+.btn-container{
+  display: flex;
+  gap: 10px;
+}
 .nav-logout,
 .nav-login-btn {
   background: #ef4444;
@@ -68,16 +72,32 @@
   transition: 0.25s ease;
 }
 
-.nav-login-btn {
-  background: #0ea5e9;
+
+.nav-sign-btn{
+   background: #0ea5e9;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.9rem;
+  cursor: pointer;
+  border: none;
+  transition: 0.25s ease;
+
 }
 
+
 .nav-login-btn:hover {
-  background: #0284c7;
+  background: #43ec5f;
 }
+
 
 .nav-logout:hover {
   background: #dc2626;
+}
+
+.nav-sign-btn:hover{
+background: #2ae2d9;
 }
 
 /* RESPONSIVE */

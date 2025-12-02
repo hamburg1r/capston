@@ -15,7 +15,7 @@ export const fetchFiles = createAsyncThunk(
   }
 );
 
-// request presigned url from backend
+//reqPresigned url from backned
 export const requestPresigned = createAsyncThunk(
   "files/requestPresigned",
   async ({ token, fileName, fileType }, { rejectWithValue }) => {

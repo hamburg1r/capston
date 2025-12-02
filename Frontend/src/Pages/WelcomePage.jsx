@@ -22,14 +22,7 @@ export default function WelcomePage() {
         <div className="action-grid">
 
           <Link to="/upload">
-          {/* <Link to="/upload" className="action-card"> */}
-            {/* <h3 className="action-card-title">Upload File</h3>
-            <p className="action-card-desc">
-              Upload files to S3 using presigned URLs.
-            </p> */}
-
-
-              <div className="flow-card">
+     <div className="flow-card">
             <img
               src="https://cdn-icons-png.flaticon.com/512/1828/1828490.png"
               alt="Upload"
@@ -43,11 +36,6 @@ export default function WelcomePage() {
           </Link>
 
           <Link to="/files" className="action-card">
-            {/* <h3 className="action-card-title">View Files</h3>
-            <p className="action-card-desc">
-              See file status and metadata stored in DynamoDB.
-            </p> */}
-
              <div className="flow-card">
             <img
               src="https://cdn-icons-png.flaticon.com/512/4436/4436481.png"

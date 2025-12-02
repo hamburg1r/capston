@@ -9,6 +9,24 @@ export default function Navbar() {
   const auth = useAuth();
   const dispatch = useDispatch();
 
+  const handleSignIn = () => {
+    if (!auth.isAuthenticated && !auth.isLoading) {
+      auth.signinRedirect();
+    }
+  };
+
+  const handleSignUp = () => {
+    const clientId = "1v2f3obbse4atof6qb0krmrqnu";
+    const domain =
+      "https://us-east-1eoyo85ex9.auth.us-east-1.amazoncognito.com";
+
+    const signupUrl = `${domain}/signup?client_id=${clientId}&response_type=code&redirect_uri=http://localhost:5173/login`;
+
+    window.location.href = signupUrl;
+  };
+
+
+
   const handleSignOut = async () => {
     await auth.removeUser();
     dispatch(clearAuth());
@@ -19,9 +37,10 @@ export default function Navbar() {
       "https://us-east-1eoyo85ex9.auth.us-east-1.amazoncognito.com";
 
     window.location.href = `${domain}/logout?client_id=${clientId}&logout_uri=${encodeURIComponent(
-      logoutUri
-    )}`;
+    logoutUri
+  )}`;
   };
+
 
   return (
     <nav className="navbar">
@@ -54,9 +73,14 @@ export default function Navbar() {
             </button>
           </>
         ) : (
-          <Link to="/login" className="nav-login-btn">
-            Sign in
-          </Link>
+          <div className="btn-container">
+         <button className="nav-login-btn" onClick={handleSignIn}>
+              Sign in
+          </button>
+         <button className="nav-sign-btn" onClick={handleSignUp}>
+               Sign up
+          </button>
+          </div>
         )}
       </div>
     </nav>

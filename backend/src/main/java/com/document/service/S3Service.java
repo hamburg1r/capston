@@ -12,6 +12,8 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GeneratePresignedUrlRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 
 import java.net.URL;
 import java.util.Date;
@@ -83,4 +85,13 @@ public class S3Service {
             throw e; // Global handler handle karega
         }
     }
+    public S3Object getObject(String s3Key) {
+        log.info("Downloading file from S3: {}", s3Key);
+        try {
+            return s3Client.getObject(new GetObjectRequest(bucketName, s3Key));
+        } catch (Exception e) {
+            log.error("Error downloading file: {}", e.getMessage());
+            throw new DocumentNotFoundException("File not found in S3: " + s3Key);
+        }
+}
 }

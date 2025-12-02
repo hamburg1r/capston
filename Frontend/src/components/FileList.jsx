@@ -38,21 +38,31 @@ export default function FileList() {
     }
   };
 
-  const downloadFile = async (documentId) => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8081/api/documents/download/${documentId}`,
-        {
-          headers: { Authorization: `Bearer ${auth.user?.id_token}` },
-        }
-      );
-      
-      window.open(response.data.downloadUrl, "_blank");
-    } catch (err) {
-      console.error("Download failed", err);
-      alert("Download failed!");
-    }
-  };
+  const downloadDirect = async (documentId, fileName) => {
+  try {
+    const response = await fetch(
+      `http://localhost:8081/api/documents/download-direct/${documentId}`,
+      {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${auth.user?.id_token}`,
+        },
+      }
+    );
+
+    console.log(response)
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = fileName; // auto file save
+    link.click();
+    window.URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error("Download failed:", error);
+    alert("Failed to download!");
+  }
+};
 
   if (filesState.loading)
     return <div className="filelist-loading">Loading files...</div>;
@@ -77,14 +87,14 @@ export default function FileList() {
             </div>
 
             <div className="file-status-wrapper">
-              <span className={`file-status ${f.status.toLowerCase()}`}>
-                {f.status}
+              <span className={`file-status ${f.status=="METADATA_EXTRACTED"?"completed":"processing"}`}>
+                {f.status==="METADATA_EXTRACTED"? "successful" : f.status}
               </span>
               {(f.status === "COMPLETED" || f.status === "METADATA_EXTRACTED") && (
                 <>
                 <button
                   className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-                  onClick={() => downloadFile(f.documentId)}
+                  onClick={() => downloadDirect(f.documentId, f.fileName)}
                   >
                   Download
                 </button>

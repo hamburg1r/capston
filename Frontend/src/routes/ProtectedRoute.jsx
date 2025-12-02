@@ -1,7 +1,11 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "react-oidc-context";
+import { Navigate } from "react-router-dom";
 
-function ProtectedRoute({ isAuthenticated }) {
-  return isAuthenticated ? <Outlet /> : <Navigate to="/" />;
+export default function ProtectedRoute({ children }) {
+  const auth = useAuth();
+
+  if (auth.isLoading) return null; // or loader
+  
+
+  return auth.isAuthenticated ? children : <Navigate to="/" replace />;
 }
-
-export default ProtectedRoute;

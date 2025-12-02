@@ -12,14 +12,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    
-    //AutoRedirectTocognito login as soon as this page loads
-    if (!auth.user && !auth.isLoading) {
-      auth.signinRedirect();
-      return;
-    }
-
-    // When Cognito redirects back with token
+    console.log(auth);
     if (auth.user) {
       dispatch(
         setAuth({
@@ -31,19 +24,19 @@ export default function LoginPage() {
       navigate("/welcome", { replace: true });
     }
 
-    // If login failed → send user to Sign Up page
     if (auth.error) {
       navigate("/signup");
     }
   }, [auth.user, auth.error, auth.isLoading, dispatch, navigate]);
 
-  return (
-    <div className="login-page">
+  return (<>
       <Navbar />
+    <div className="login-page">
       <div className="login-card">
         <h2 className="login-title">Redirecting to Login...</h2>
         <p className="login-note">Please wait while we connect you securely.</p>
       </div>
     </div>
+  </>
   );
 }
