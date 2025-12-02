@@ -1,4 +1,4 @@
-package com.document.config;
+package com.document.aws;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
