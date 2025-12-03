@@ -1,5 +1,7 @@
 package com.document.model;
 
+import java.util.Map;
+
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBAttribute;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBHashKey;
 import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBRangeKey;
@@ -15,9 +17,10 @@ public class DocumentModel {
     private String fileSize;
     private String s3Key;
     private String status;
-    private String uploadDate; 
+    private String uploadDate;
 
-   
+    private Map<String, String> processingInfo;
+    private Map<String, String> metadata;
 
     @DynamoDBHashKey(attributeName = "documentId")
     public String getDocumentId() {
@@ -36,6 +39,7 @@ public class DocumentModel {
     public void setUserId(String userId) {
         this.userId = userId;
     }
+
 
     @DynamoDBAttribute(attributeName = "fileName")
     public String getFileName() {
@@ -91,11 +95,29 @@ public class DocumentModel {
         this.uploadDate = uploadDate;
     }
 
-	@Override
-	public String toString() {
-		return "DocumentModel [documentId=" + documentId + ", userId=" + userId + ", fileName=" + fileName
-				+ ", fileType=" + fileType + ", fileSize=" + fileSize + ", s3Key=" + s3Key + ", status=" + status
-				+ ", uploadDate=" + uploadDate + "]";
-	}
-    
+    @DynamoDBAttribute(attributeName = "processingInfo")
+    public Map<String, String> getProcessingInfo() {
+        return processingInfo;
+    }
+
+    public void setProcessingInfo(Map<String, String> processingInfo) {
+        this.processingInfo = processingInfo;
+    }
+
+    @DynamoDBAttribute(attributeName = "metadata")
+    public Map<String, String> getMetadata() {
+        return metadata;
+    }
+
+    public void setMetadata(Map<String, String> metadata) {
+        this.metadata = metadata;
+    }
+
+    @Override
+    public String toString() {
+        return "DocumentModel [documentId=" + documentId + ", userId=" + userId +
+               ", fileName=" + fileName + ", fileType=" + fileType + 
+               ", fileSize=" + fileSize + ", s3Key=" + s3Key +
+               ", status=" + status + ", uploadDate=" + uploadDate + "]";
+    }
 }

@@ -59,9 +59,6 @@ public class SQSMessageListener {
         this.objectMapper = new ObjectMapper();
     }
 
-    /**
-     * Poll SQS queue every 10 seconds for new messages
-     */
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     public void pollMessages() {
         try {
@@ -208,12 +205,18 @@ public class SQSMessageListener {
             Map<String, String> metadata = extractFileMetadata(s3Key, fileType);
 
             // Update document with results
+            // added
+            doc.setProcessingInfo(processingResult);
+            doc.setMetadata(metadata);
+            // ..............
             doc.setStatus("COMPLETED");
             documentService.updateDocument(doc);
 
             log.info("Document processing completed successfully: {}", documentId);
             log.info("Processing results: {}", processingResult);
             log.info("Extracted metadata: {}", metadata);
+
+
 
             // Send success notification
             snsService.publishDocumentProcessingComplete(documentId, userId, "COMPLETED");

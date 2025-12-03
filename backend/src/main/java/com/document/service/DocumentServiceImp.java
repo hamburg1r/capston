@@ -85,7 +85,9 @@ public class DocumentServiceImp implements DocumentService {
         doc.setFileType(fileType);
         doc.setFileSize(fileSize);
         doc.setS3Key(s3Key);
-        doc.setStatus("COMPLETED");
+        // doc.setStatus("COMPLETED");
+        doc.setStatus("UPDATED");
+
 
         repo.save(doc);
     }
